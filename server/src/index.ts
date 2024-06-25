@@ -1,23 +1,25 @@
-import 'dotenv/config';
-import express from 'express';
-import connectDB from './db';
-import globalRouter from './global-router';
-import { logger } from './logger';
+import 'dotenv/config'
+import express from 'express'
+import cors from 'cors'
+import { createServer } from 'node:http'
+import connectDB from './db'
+import globalRouter from './global-router'
+import { logger } from './logger'
+import { listBuckets } from './middlewares/s3-middleware'
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+connectDB()
 
-connectDB();
+const app = express()
+const PORT = process.env.PORT || 3001
+app.use(cors())
+app.use(express.json())
+app.use(logger)
+app.use('/api/v1', globalRouter)
 
-app.use(logger);
-app.use(express.json());
-app.use('/api/v1/',globalRouter);
+listBuckets()
 
+const server = createServer(app)
 
-app.get('/helloworld',(request,response) =>{
-  response.send("Hello World!");
+server.listen(PORT, () => {
+  console.log(`server running at http://localhost:${PORT}/api/v1`)
 })
-
-app.listen(PORT, () => {
-  console.log(`Server runs at http://localhost:${PORT}`);
-});
